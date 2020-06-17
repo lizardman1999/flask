@@ -1,5 +1,3 @@
-.. _testing:
-
 Testing Flask Applications
 ==========================
 
@@ -20,15 +18,17 @@ framework for our tests. You can install it with ``pip``, like so::
 
     $ pip install pytest
 
-.. _pytest:
-   https://pytest.org
+.. _pytest: https://docs.pytest.org/
 
 The Application
 ---------------
 
 First, we need an application to test; we will use the application from
-the :ref:`tutorial`.  If you don't have that application yet, get the
-source code from :gh:`the examples <examples/tutorial>`.
+the :doc:`tutorial/index`. If you don't have that application yet, get
+the source code from :gh:`the examples <examples/tutorial>`.
+
+So that we can import the module ``flaskr`` correctly, we need to run
+``pip install -e .`` in the folder ``tutorial``.
 
 The Testing Skeleton
 --------------------
@@ -47,7 +47,7 @@ the application for testing and initializes a new database::
 
     import pytest
 
-    from flaskr import flaskr
+    from flaskr import create_app
 
 
     @pytest.fixture
@@ -163,16 +163,19 @@ invalid credentials.  Add this new test function::
     def test_login_logout(client):
         """Make sure login and logout works."""
 
-        rv = login(client, flaskr.app.config['USERNAME'], flaskr.app.config['PASSWORD'])
+        username = flaskr.app.config["USERNAME"]
+        password = flaskr.app.config["PASSWORD"]
+
+        rv = login(client, username, password)
         assert b'You were logged in' in rv.data
 
         rv = logout(client)
         assert b'You were logged out' in rv.data
 
-        rv = login(client, flaskr.app.config['USERNAME'] + 'x', flaskr.app.config['PASSWORD'])
+        rv = login(client, f"{username}x", password)
         assert b'Invalid username' in rv.data
 
-        rv = login(client, flaskr.app.config['USERNAME'], flaskr.app.config['PASSWORD'] + 'x')
+        rv = login(client, username, f'{password}x')
         assert b'Invalid password' in rv.data
 
 Test Adding Messages
@@ -234,7 +237,7 @@ way.
 
 If you want to test your application with different configurations and
 there does not seem to be a good way to do that, consider switching to
-application factories (see :ref:`app-factories`).
+application factories (see :doc:`patterns/appfactories`).
 
 Note however that if you are using a test request context, the
 :meth:`~flask.Flask.before_request` and :meth:`~flask.Flask.after_request`
@@ -421,7 +424,7 @@ command line. ::
 
     @app.cli.command('hello')
     @click.option('--name', default='World')
-    def hello_command(name)
+    def hello_command(name):
         click.echo(f'Hello, {name}!')
 
     def test_hello():
@@ -448,12 +451,12 @@ This is useful for testing complex validation rules and custom types. ::
 
     @app.cli.command('hello')
     @click.option('--name', default='World', callback=upper)
-    def hello_command(name)
+    def hello_command(name):
         click.echo(f'Hello, {name}!')
 
     def test_hello_params():
         context = hello_command.make_context('hello', ['--name', 'flask'])
         assert context.params['name'] == 'FLASK'
 
-.. _click: http://click.pocoo.org/
-.. _utilities for testing: http://click.pocoo.org/testing
+.. _click: https://click.palletsprojects.com/
+.. _utilities for testing: https://click.palletsprojects.com/testing/

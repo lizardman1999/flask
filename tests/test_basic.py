@@ -1,13 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-    tests.basic
-    ~~~~~~~~~~~~~~~~~~~~~
-
-    The basic functionality.
-
-    :copyright: © 2010 by the Pallets team.
-    :license: BSD, see LICENSE for more details.
-"""
 import re
 import sys
 import time
@@ -24,7 +14,6 @@ from werkzeug.http import parse_date
 from werkzeug.routing import BuildError
 
 import flask
-from flask._compat import text_type
 
 
 def test_options_work(app, client):
@@ -92,12 +81,7 @@ def test_provide_automatic_options_kwarg(app, client):
     assert rv.status_code == 405
     assert sorted(rv.allow) == ["GET", "HEAD"]
 
-    # Older versions of Werkzeug.test.Client don't have an options method
-    if hasattr(client, "options"):
-        rv = client.options("/")
-    else:
-        rv = client.open("/", method="OPTIONS")
-
+    rv = client.open("/", method="OPTIONS")
     assert rv.status_code == 405
 
     rv = client.head("/")
@@ -110,11 +94,7 @@ def test_provide_automatic_options_kwarg(app, client):
     assert rv.status_code == 405
     assert sorted(rv.allow) == ["GET", "HEAD", "POST"]
 
-    if hasattr(client, "options"):
-        rv = client.options("/more")
-    else:
-        rv = client.open("/more", method="OPTIONS")
-
+    rv = client.open("/more", method="OPTIONS")
     assert rv.status_code == 405
 
 
@@ -288,7 +268,7 @@ def test_session_using_server_name_port_and_path(app, client):
 
 
 def test_session_using_application_root(app, client):
-    class PrefixPathMiddleware(object):
+    class PrefixPathMiddleware:
         def __init__(self, app, prefix):
             self.app = app
             self.prefix = prefix
@@ -372,7 +352,7 @@ def test_session_localhost_warning(recwarn, app, client):
     rv = client.get("/", "http://localhost:5000/")
     assert "domain" not in rv.headers["set-cookie"].lower()
     w = recwarn.pop(UserWarning)
-    assert '"localhost" is not a valid cookie domain' in str(w.message)
+    assert "'localhost' is not a valid cookie domain" in str(w.message)
 
 
 def test_session_ip_warning(recwarn, app, client):
@@ -413,7 +393,7 @@ def test_session_expiration(app, client):
 
     @app.route("/test")
     def test():
-        return text_type(flask.session.permanent)
+        return str(flask.session.permanent)
 
     rv = client.get("/")
     assert "set-cookie" in rv.headers
@@ -593,18 +573,18 @@ def test_extended_flashing(app):
 
     @app.route("/")
     def index():
-        flask.flash(u"Hello World")
-        flask.flash(u"Hello World", "error")
-        flask.flash(flask.Markup(u"<em>Testing</em>"), "warning")
+        flask.flash("Hello World")
+        flask.flash("Hello World", "error")
+        flask.flash(flask.Markup("<em>Testing</em>"), "warning")
         return ""
 
     @app.route("/test/")
     def test():
         messages = flask.get_flashed_messages()
         assert list(messages) == [
-            u"Hello World",
-            u"Hello World",
-            flask.Markup(u"<em>Testing</em>"),
+            "Hello World",
+            "Hello World",
+            flask.Markup("<em>Testing</em>"),
         ]
         return ""
 
@@ -613,9 +593,9 @@ def test_extended_flashing(app):
         messages = flask.get_flashed_messages(with_categories=True)
         assert len(messages) == 3
         assert list(messages) == [
-            ("message", u"Hello World"),
-            ("error", u"Hello World"),
-            ("warning", flask.Markup(u"<em>Testing</em>")),
+            ("message", "Hello World"),
+            ("error", "Hello World"),
+            ("warning", flask.Markup("<em>Testing</em>")),
         ]
         return ""
 
@@ -624,7 +604,7 @@ def test_extended_flashing(app):
         messages = flask.get_flashed_messages(
             category_filter=["message"], with_categories=True
         )
-        assert list(messages) == [("message", u"Hello World")]
+        assert list(messages) == [("message", "Hello World")]
         return ""
 
     @app.route("/test_filters/")
@@ -633,8 +613,8 @@ def test_extended_flashing(app):
             category_filter=["message", "warning"], with_categories=True
         )
         assert list(messages) == [
-            ("message", u"Hello World"),
-            ("warning", flask.Markup(u"<em>Testing</em>")),
+            ("message", "Hello World"),
+            ("warning", flask.Markup("<em>Testing</em>")),
         ]
         return ""
 
@@ -642,8 +622,8 @@ def test_extended_flashing(app):
     def test_filters2():
         messages = flask.get_flashed_messages(category_filter=["message", "warning"])
         assert len(messages) == 2
-        assert messages[0] == u"Hello World"
-        assert messages[1] == flask.Markup(u"<em>Testing</em>")
+        assert messages[0] == "Hello World"
+        assert messages[1] == flask.Markup("<em>Testing</em>")
         return ""
 
     # Create new test client on each test to clean flashed messages.
@@ -1106,17 +1086,17 @@ def test_enctype_debug_helper(app, client):
         with pytest.raises(DebugFilesKeyError) as e:
             client.post("/fail", data={"foo": "index.txt"})
         assert "no file contents were transmitted" in str(e.value)
-        assert 'This was submitted: "index.txt"' in str(e.value)
+        assert "This was submitted: 'index.txt'" in str(e.value)
 
 
 def test_response_types(app, client):
     @app.route("/text")
     def from_text():
-        return u"Hällo Wörld"
+        return "Hällo Wörld"
 
     @app.route("/bytes")
     def from_bytes():
-        return u"Hällo Wörld".encode("utf-8")
+        return "Hällo Wörld".encode()
 
     @app.route("/full_tuple")
     def from_full_tuple():
@@ -1153,8 +1133,8 @@ def test_response_types(app, client):
     def from_dict():
         return {"foo": "bar"}, 201
 
-    assert client.get("/text").data == u"Hällo Wörld".encode("utf-8")
-    assert client.get("/bytes").data == u"Hällo Wörld".encode("utf-8")
+    assert client.get("/text").data == "Hällo Wörld".encode()
+    assert client.get("/bytes").data == "Hällo Wörld".encode()
 
     rv = client.get("/full_tuple")
     assert rv.data == b"Meh"
@@ -1220,21 +1200,18 @@ def test_response_type_errors():
 
     with pytest.raises(TypeError) as e:
         c.get("/none")
-
-    assert "returned None" in str(e)
+        assert "returned None" in str(e.value)
+        assert "from_none" in str(e.value)
 
     with pytest.raises(TypeError) as e:
         c.get("/small_tuple")
-
-    assert "tuple must have the form" in str(e)
+        assert "tuple must have the form" in str(e.value)
 
     pytest.raises(TypeError, c.get, "/large_tuple")
 
     with pytest.raises(TypeError) as e:
         c.get("/bad_type")
-
-    assert "object is not callable" not in str(e)
-    assert "it was a bool" in str(e)
+        assert "it was a bool" in str(e.value)
 
     pytest.raises(TypeError, c.get, "/bad_wsgi")
 
@@ -1384,26 +1361,6 @@ def test_url_for_passes_special_values_to_build_error_handler(app):
         flask.url_for("/")
 
 
-def test_custom_converters(app, client):
-    from werkzeug.routing import BaseConverter
-
-    class ListConverter(BaseConverter):
-        def to_python(self, value):
-            return value.split(",")
-
-        def to_url(self, value):
-            base_to_url = super(ListConverter, self).to_url
-            return ",".join(base_to_url(x) for x in value)
-
-    app.url_map.converters["list"] = ListConverter
-
-    @app.route("/<list:args>")
-    def index(args):
-        return "|".join(args)
-
-    assert client.get("/1,2,3").data == b"1|2|3"
-
-
 def test_static_files(app, client):
     rv = client.get("/static/index.html")
     assert rv.status_code == 200
@@ -1449,6 +1406,17 @@ def test_static_url_empty_path_default(app):
     rv.close()
 
 
+def test_static_folder_with_ending_slash():
+    app = flask.Flask(__name__, static_folder="static/")
+
+    @app.route("/<path:path>")
+    def catch_all(path):
+        return path
+
+    rv = app.test_client().get("/catch/all")
+    assert rv.data == b"catch/all"
+
+
 def test_static_route_with_host_matching():
     app = flask.Flask(__name__, host_matching=True, static_host="example.com")
     c = app.test_client()
@@ -1475,60 +1443,46 @@ def test_request_locals():
     assert not flask.g
 
 
-def test_test_app_proper_environ():
+def test_server_name_subdomain():
     app = flask.Flask(__name__, subdomain_matching=True)
-    app.config.update(SERVER_NAME="localhost.localdomain:5000")
     client = app.test_client()
 
     @app.route("/")
     def index():
-        return "Foo"
+        return "default"
 
     @app.route("/", subdomain="foo")
     def subdomain():
-        return "Foo SubDomain"
+        return "subdomain"
 
+    app.config["SERVER_NAME"] = "dev.local:5000"
     rv = client.get("/")
-    assert rv.data == b"Foo"
+    assert rv.data == b"default"
 
-    rv = client.get("/", "http://localhost.localdomain:5000")
-    assert rv.data == b"Foo"
+    rv = client.get("/", "http://dev.local:5000")
+    assert rv.data == b"default"
 
-    rv = client.get("/", "https://localhost.localdomain:5000")
-    assert rv.data == b"Foo"
+    rv = client.get("/", "https://dev.local:5000")
+    assert rv.data == b"default"
 
-    app.config.update(SERVER_NAME="localhost.localdomain")
-    rv = client.get("/", "https://localhost.localdomain")
-    assert rv.data == b"Foo"
+    app.config["SERVER_NAME"] = "dev.local:443"
+    rv = client.get("/", "https://dev.local")
 
-    try:
-        app.config.update(SERVER_NAME="localhost.localdomain:443")
-        rv = client.get("/", "https://localhost.localdomain")
-        # Werkzeug 0.8
-        assert rv.status_code == 404
-    except ValueError as e:
-        # Werkzeug 0.7
-        assert str(e) == (
-            "the server name provided "
-            "('localhost.localdomain:443') does not match the "
-            "server name from the WSGI environment ('localhost.localdomain')"
-        )
+    # Werkzeug 1.0 fixes matching https scheme with 443 port
+    if rv.status_code != 404:
+        assert rv.data == b"default"
 
-    try:
-        app.config.update(SERVER_NAME="localhost.localdomain")
+    app.config["SERVER_NAME"] = "dev.local"
+    rv = client.get("/", "https://dev.local")
+    assert rv.data == b"default"
+
+    # suppress Werkzeug 1.0 warning about name mismatch
+    with pytest.warns(None):
         rv = client.get("/", "http://foo.localhost")
-        # Werkzeug 0.8
         assert rv.status_code == 404
-    except ValueError as e:
-        # Werkzeug 0.7
-        assert str(e) == (
-            "the server name provided "
-            "('localhost.localdomain') does not match the "
-            "server name from the WSGI environment ('foo.localhost')"
-        )
 
-    rv = client.get("/", "http://foo.localhost.localdomain")
-    assert rv.data == b"Foo SubDomain"
+    rv = client.get("/", "http://foo.dev.local")
+    assert rv.data == b"subdomain"
 
 
 def test_exception_propagation(app, client):
@@ -1647,11 +1601,11 @@ def test_inject_blueprint_url_defaults(app):
 
 
 def test_nonascii_pathinfo(app, client):
-    @app.route(u"/киртест")
+    @app.route("/киртест")
     def index():
         return "Hello World!"
 
-    rv = client.get(u"/киртест")
+    rv = client.get("/киртест")
     assert rv.data == b"Hello World!"
 
 
@@ -1670,7 +1624,7 @@ def test_debug_mode_complains_after_first_request(app, client):
         def broken():
             return "Meh"
 
-    assert "A setup function was called" in str(e)
+    assert "A setup function was called" in str(e.value)
 
     app.debug = False
 
@@ -1725,8 +1679,10 @@ def test_routing_redirect_debugging(app, client):
     with client:
         with pytest.raises(AssertionError) as e:
             client.post("/foo", data={})
-        assert "http://localhost/foo/" in str(e)
-        assert ("Make sure to directly send your POST-request to this URL") in str(e)
+        assert "http://localhost/foo/" in str(e.value)
+        assert "Make sure to directly send your POST-request to this URL" in str(
+            e.value
+        )
 
         rv = client.get("/foo", data={}, follow_redirects=True)
         assert rv.data == b"success"
@@ -1856,7 +1812,7 @@ def test_subdomain_matching():
 
     @app.route("/", subdomain="<user>")
     def index(user):
-        return "index for %s" % user
+        return f"index for {user}"
 
     rv = client.get("/", "http://mitsuhiko.localhost.localdomain/")
     assert rv.data == b"index for mitsuhiko"
@@ -1869,7 +1825,7 @@ def test_subdomain_matching_with_ports():
 
     @app.route("/", subdomain="<user>")
     def index(user):
-        return "index for %s" % user
+        return f"index for {user}"
 
     rv = client.get("/", "http://mitsuhiko.localhost.localdomain:3000/")
     assert rv.data == b"index for mitsuhiko"
@@ -1885,9 +1841,11 @@ def test_subdomain_matching_other_name(matching):
     def index():
         return "", 204
 
-    # ip address can't match name
-    rv = client.get("/", "http://127.0.0.1:3000/")
-    assert rv.status_code == 404 if matching else 204
+    # suppress Werkzeug 0.15 warning about name mismatch
+    with pytest.warns(None):
+        # ip address can't match name
+        rv = client.get("/", "http://127.0.0.1:3000/")
+        assert rv.status_code == 404 if matching else 204
 
     # allow all subdomains if matching is disabled
     rv = client.get("/", "http://www.localhost.localdomain:3000/")
@@ -1907,7 +1865,7 @@ def test_multi_route_rules(app, client):
 
 
 def test_multi_route_class_views(app, client):
-    class View(object):
+    class View:
         def __init__(self, app):
             app.add_url_rule("/", "index", self.index)
             app.add_url_rule("/<test>/", "index", self.index)
@@ -1939,12 +1897,12 @@ def test_run_server_port(monkeypatch, app):
 
     # Mocks werkzeug.serving.run_simple method
     def run_simple_mock(hostname, port, application, *args, **kwargs):
-        rv["result"] = "running on %s:%s ..." % (hostname, port)
+        rv["result"] = f"running on {hostname}:{port} ..."
 
     monkeypatch.setattr(werkzeug.serving, "run_simple", run_simple_mock)
     hostname, port = "localhost", 8000
     app.run(hostname, port, debug=True)
-    assert rv["result"] == "running on %s:%s ..." % (hostname, port)
+    assert rv["result"] == f"running on {hostname}:{port} ..."
 
 
 @pytest.mark.parametrize(

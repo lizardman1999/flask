@@ -1,13 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-flask.logging
-~~~~~~~~~~~~~
-
-:copyright: © 2010 by the Pallets team.
-:license: BSD, see LICENSE for more details.
-"""
-from __future__ import absolute_import
-
 import logging
 import sys
 
@@ -57,7 +47,10 @@ default_handler.setFormatter(
 
 
 def create_logger(app):
-    """Get the ``'flask.app'`` logger and configure it if needed.
+    """Get the Flask app's logger and configure it if needed.
+
+    The logger name will be the same as
+    :attr:`app.import_name <flask.Flask.name>`.
 
     When :attr:`~flask.Flask.debug` is enabled, set the logger level to
     :data:`logging.DEBUG` if it is not set.
@@ -66,9 +59,9 @@ def create_logger(app):
     :class:`~logging.StreamHandler` for
     :func:`~flask.logging.wsgi_errors_stream` with a basic format.
     """
-    logger = logging.getLogger("flask.app")
+    logger = logging.getLogger(app.name)
 
-    if app.debug and logger.level == logging.NOTSET:
+    if app.debug and not logger.level:
         logger.setLevel(logging.DEBUG)
 
     if not has_level_handler(logger):

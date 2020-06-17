@@ -1,14 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-    flask.globals
-    ~~~~~~~~~~~~~
-
-    Defines all the global objects that are proxies to the current
-    active context.
-
-    :copyright: © 2010 by the Pallets team.
-    :license: BSD, see LICENSE for more details.
-"""
 from functools import partial
 
 from werkzeug.local import LocalProxy

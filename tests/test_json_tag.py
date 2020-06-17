@@ -1,11 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-tests.test_json_tag
-~~~~~~~~~~~~~~~~~~~
-
-:copyright: © 2010 by the Pallets team.
-:license: BSD, see LICENSE for more details.
-"""
 from datetime import datetime
 from uuid import uuid4
 
@@ -48,7 +40,7 @@ def test_duplicate_tag():
 
 
 def test_custom_tag():
-    class Foo(object):  # noqa: B903, for Python2 compatibility
+    class Foo:  # noqa: B903, for Python2 compatibility
         def __init__(self, data):
             self.data = data
 

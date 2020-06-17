@@ -1,7 +1,5 @@
 .. currentmodule:: flask
 
-.. _cli:
-
 Command Line Interface
 ======================
 
@@ -10,7 +8,7 @@ interface, in your virtualenv. Executed from the terminal, this script gives
 access to built-in, extension, and application-defined commands. The ``--help``
 option will give more information about any commands and options.
 
-.. _Click: http://click.pocoo.org/
+.. _Click: https://click.palletsprojects.com/
 
 
 Application Discovery
@@ -77,12 +75,8 @@ Within the given import, the command looks for an application instance named
 found, the command looks for a factory function named ``create_app`` or
 ``make_app`` that returns an instance.
 
-When calling an application factory, if the factory takes an argument named
-``script_info``, then the :class:`~cli.ScriptInfo` instance is passed as a
-keyword argument. If the application factory takes only one argument and no
-parentheses follow the factory name, the :class:`~cli.ScriptInfo` instance
-is passed as a positional argument. If parentheses follow the factory name,
-their contents are parsed as Python literals and passes as arguments to the
+If parentheses follow the factory name, their contents are parsed as
+Python literals and passed as arguments and keyword arguments to the
 function. This means that strings must still be in quotes.
 
 
@@ -99,7 +93,7 @@ replaces the :meth:`Flask.run` method in most cases. ::
 .. warning:: Do not use this command to run your application in production.
     Only use the development server during development. The development server
     is provided for convenience, but is not designed to be particularly secure,
-    stable, or efficient. See :ref:`deployment` for how to run in production.
+    stable, or efficient. See :doc:`/deploying/index` for how to run in production.
 
 
 Open a Shell
@@ -272,7 +266,7 @@ Custom Commands
 The ``flask`` command is implemented using `Click`_. See that project's
 documentation for full information about writing commands.
 
-This example adds the command ``create_user`` that takes the argument
+This example adds the command ``create-user`` that takes the argument
 ``name``. ::
 
     import click
@@ -280,14 +274,14 @@ This example adds the command ``create_user`` that takes the argument
 
     app = Flask(__name__)
 
-    @app.cli.command()
-    @click.argument('name')
+    @app.cli.command("create-user")
+    @click.argument("name")
     def create_user(name):
         ...
 
 ::
 
-    $ flask create_user admin
+    $ flask create-user admin
 
 This example adds the same command, but as ``user create``, a command in a
 group. This is useful if you want to organize multiple related commands. ::
@@ -309,7 +303,6 @@ group. This is useful if you want to organize multiple related commands. ::
 ::
 
     $ flask user create demo
-
 
 See :ref:`testing-cli` for an overview of how to test your custom
 commands.
@@ -417,7 +410,7 @@ they are installed. Entry points are specified in :file:`setup.py` ::
     )
 
 
-.. _entry point: https://packaging.python.org/tutorials/distributing-packages/#entry-points
+.. _entry point: https://packaging.python.org/tutorials/packaging-projects/#entry-points
 
 Inside :file:`flask_my_extension/commands.py` you can then export a Click
 object::
@@ -486,16 +479,16 @@ script is available. Note that you don't need to set ``FLASK_APP``. ::
     The ``flask`` command, being separate from your code, does not have
     this issue and is recommended in most cases.
 
-.. _console script: https://packaging.python.org/tutorials/distributing-packages/#console-scripts
+.. _console script: https://packaging.python.org/tutorials/packaging-projects/#console-scripts
 
 
 PyCharm Integration
 -------------------
 
-Prior to PyCharm 2018.1, the Flask CLI features weren't yet fully
-integrated into PyCharm. We have to do a few tweaks to get them working
-smoothly. These instructions should be similar for any other IDE you
-might want to use.
+PyCharm Professional provides a special Flask run configuration. For
+the Community Edition, we need to configure it to call the ``flask run``
+CLI command with the correct environment variables. These instructions
+should be similar for any other IDE you might want to use.
 
 In PyCharm, with your project open, click on *Run* from the menu bar and
 go to *Edit Configurations*. You'll be greeted by a screen similar to
@@ -504,7 +497,7 @@ this:
 .. image:: _static/pycharm-runconfig.png
     :align: center
     :class: screenshot
-    :alt: screenshot of pycharm's run configuration settings
+    :alt: Screenshot of PyCharms's run configuration settings.
 
 There's quite a few options to change, but once we've done it for one
 command, we can easily copy the entire configuration and make a single
@@ -512,9 +505,9 @@ tweak to give us access to other commands, including any custom ones you
 may implement yourself.
 
 Click the + (*Add New Configuration*) button and select *Python*. Give
-the configuration a good descriptive name such as "Run Flask Server".
-For the ``flask run`` command, check "Single instance only" since you
-can't run the server more than once at the same time.
+the configuration a name such as "flask run". For the ``flask run``
+command, check "Single instance only" since you can't run the server
+more than once at the same time.
 
 Select *Module name* from the dropdown (**A**) then input ``flask``.
 
@@ -525,7 +518,8 @@ the development server.
 You can skip this next step if you're using :ref:`dotenv`. We need to
 add an environment variable (**C**) to identify our application. Click
 on the browse button and add an entry with ``FLASK_APP`` on the left and
-the Python import or file on the right (``hello`` for example).
+the Python import or file on the right (``hello`` for example). Add an
+entry with ``FLASK_ENV`` and set it to ``development``.
 
 Next we need to set the working directory (**D**) to be the folder where
 our application resides.
